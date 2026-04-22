@@ -1,0 +1,57 @@
+<header class="page-header">
+  <h1>Dashboard</h1>
+</header>
+
+<div class="stats-grid">
+  <div class="stat-card" *ngFor="let stat of stats">
+    <div class="stat-header">
+      <span class="stat-title">{{ stat.title }}</span>
+      <div class="stat-icon-bg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+          <polyline points="16 7 22 7 22 13"></polyline>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-value">{{ stat.value }}</div>
+    <div class="stat-trend">{{ stat.trend }}</div>
+  </div>
+</div>
+
+<div class="pipeline-section">
+  <div class="section-header">
+    <h2>Deal Pipeline</h2>
+    <button class="add-btn">+ Add Deal</button>
+  </div>
+
+  <div class="kanban-board" cdkDropListGroup>
+    <div class="kanban-column" *ngFor="let column of columns">
+      <div class="column-header" [style.border-top-color]="getBorderColor(column.status)">
+        <span class="column-name">{{ column.name }}</span>
+        <span class="column-count">{{ column.deals.length }}</span>
+      </div>
+
+      <div
+        cdkDropList
+        [cdkDropListData]="column.deals"
+        class="card-list"
+        (cdkDropListDropped)="drop($event)">
+        <div class="deal-card" *ngFor="let deal of column.deals" cdkDrag [routerLink]="['/deals', deal.id]">
+          <div class="card-status-dot" [style.background-color]="getBorderColor(deal.status)"></div>
+          <div class="deal-title">{{ deal.title }}</div>
+          <div class="deal-company">{{ deal.company }}</div>
+          <div class="deal-footer">
+            <span class="deal-amount">{{ deal.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+            <img class="deal-owner-avatar" [src]="'https://ui-avatars.com/api/?name=' + (deal.owner || 'U') + '&background=random&size=24'" alt="">
+          </div>
+          
+          <div class="card-tags" *ngIf="deal.status === 'Won' || deal.status === 'Lost'">
+            <span class="tag" [class.won]="deal.status === 'Won'" [class.lost]="deal.status === 'Lost'">
+              {{ deal.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

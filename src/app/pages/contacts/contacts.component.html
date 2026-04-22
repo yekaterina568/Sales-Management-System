@@ -1,0 +1,82 @@
+<header class="page-header">
+  <div class="header-left">
+    <h1>Contacts</h1>
+  </div>
+  <div class="header-right">
+    <div class="search-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search contacts..." 
+        [(ngModel)]="searchQuery" 
+        (ngModelChange)="onSearch()">
+    </div>
+    <button class="filter-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+      </svg>
+      Status
+    </button>
+    <button class="add-btn">+ Add Contact</button>
+  </div>
+</header>
+
+<div class="contacts-table-container">
+  <table class="contacts-table">
+    <thead>
+      <tr>
+        <th>FULL NAME</th>
+        <th>COMPANY</th>
+        <th>PHONE</th>
+        <th>EMAIL</th>
+        <th>STATUS</th>
+        <th>LAST ACTIVITY</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let contact of filteredContacts">
+        <td>
+          <div class="user-cell">
+            <img [src]="'https://ui-avatars.com/api/?name=' + contact.name + '&background=random'" alt="" class="avatar">
+            <span class="name">{{ contact.name }}</span>
+          </div>
+        </td>
+        <td>{{ contact.company }}</td>
+        <td>{{ contact.phone }}</td>
+        <td><a [href]="'mailto:' + contact.email" class="email-link">{{ contact.email }}</a></td>
+        <td>
+          <span class="status-badge" [ngClass]="getStatusClass(contact.status)">
+            {{ contact.status }}
+          </span>
+        </td>
+        <td>{{ contact.lastActivity }}</td>
+        <td>
+          <button class="more-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="19" cy="12" r="1"></circle>
+              <circle cx="5" cy="12" r="1"></circle>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="table-footer">
+    <div class="info">Showing 1-10 of 248 contacts</div>
+    <div class="pagination">
+      <button class="page-nav">Previous</button>
+      <button class="page-num active">1</button>
+      <button class="page-num">2</button>
+      <button class="page-num">3</button>
+      <span class="dots">...</span>
+      <button class="page-num">25</button>
+      <button class="page-nav">Next</button>
+    </div>
+  </div>
+</div>

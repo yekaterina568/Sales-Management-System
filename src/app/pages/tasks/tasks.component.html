@@ -1,0 +1,59 @@
+<header class="page-header">
+  <h1>Tasks</h1>
+  <div class="filters">
+    <button [class.active]="currentFilter === 'All'" (click)="setFilter('All')">All</button>
+    <button [class.active]="currentFilter === 'Active'" (click)="setFilter('Active')">Active</button>
+    <button [class.active]="currentFilter === 'Completed'" (click)="setFilter('Completed')">Completed</button>
+  </div>
+</header>
+
+<div class="tasks-layout">
+  <div class="tasks-list-container">
+    <div class="card">
+      <div class="task-item" *ngFor="let task of filteredTasks">
+        <label class="checkbox-container">
+          <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
+          <span class="checkmark"></span>
+        </label>
+        <div class="task-info" [class.completed]="task.completed">
+          <div class="task-title">{{ task.title }}</div>
+          <div class="task-deadline">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            {{ task.deadline }}
+          </div>
+        </div>
+        <button class="delete-task" (click)="deleteTask(task.id)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="empty-state" *ngIf="filteredTasks.length === 0">
+        No tasks found in this category.
+      </div>
+    </div>
+  </div>
+
+  <div class="add-task-sidebar">
+    <div class="card add-task-card">
+      <h3>Add New Task</h3>
+      <div class="form-group">
+        <label>Task Title</label>
+        <input type="text" placeholder="What needs to be done?" [(ngModel)]="newTaskTitle">
+      </div>
+      <div class="form-group">
+        <label>Deadline</label>
+        <input type="date" [(ngModel)]="newTaskDeadline">
+      </div>
+      <button class="add-btn" (click)="addTask()" [disabled]="!newTaskTitle">Add Task</button>
+    </div>
+  </div>
+</div>
