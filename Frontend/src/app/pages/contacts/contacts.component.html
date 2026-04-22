@@ -1,0 +1,96 @@
+<header class="page-header">
+    <div class="header-left">
+        <h1>Contacts</h1>
+    </div>
+    <div class="header-right">
+        <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Search contacts..." [(ngModel)]="searchQuery" (ngModelChange)="onSearch()">
+        </div>
+        <button class="add-btn" (click)="showAddForm = !showAddForm">+ Add Contact</button>
+    </div>
+</header>
+
+<div class="add-form" *ngIf="showAddForm">
+    <h3>New Contact</h3>
+    <div class="form-row">
+        <input [(ngModel)]="newContact.full_name" placeholder="Full Name" />
+        <input [(ngModel)]="newContact.company" placeholder="Company" />
+    </div>
+    <div class="form-row">
+        <input [(ngModel)]="newContact.email" placeholder="Email" type="email" />
+        <input [(ngModel)]="newContact.phone" placeholder="Phone" />
+    </div>
+    <div class="form-row">
+        <select [(ngModel)]="newContact.status">
+            <option value="Active">Active</option>
+            <option value="Lead">Lead</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+    </div>
+    <div class="form-actions">
+        <button class="cancel-btn" (click)="showAddForm = false">Cancel</button>
+        <button class="save-btn" (click)="addContact()">Save Contact</button>
+    </div>
+</div>
+
+<div class="error-msg" *ngIf="error">{{ error }}</div>
+
+<div class="loading" *ngIf="loading">Loading contacts...</div>
+
+<div class="contacts-table-container" *ngIf="!loading">
+    <table class="contacts-table">
+        <thead>
+            <tr>
+                <th>FULL NAME</th>
+                <th>COMPANY</th>
+                <th>PHONE</th>
+                <th>EMAIL</th>
+                <th>STATUS</th>
+                <th>LAST ACTIVITY</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let contact of filteredContacts">
+                <td>
+                    <div class="user-cell">
+                        <img [src]="'https://ui-avatars.com/api/?name=' + contact.full_name + '&background=random'"
+                            alt="" class="avatar">
+                        <span class="name">{{ contact.full_name }}</span>
+                    </div>
+                </td>
+                <td>{{ contact.company }}</td>
+                <td>{{ contact.phone }}</td>
+                <td><a [href]="'mailto:' + contact.email" class="email-link">{{ contact.email }}</a></td>
+                <td>
+                    <span class="status-badge" [ngClass]="getStatusClass(contact.status)">
+                        {{ contact.status }}
+                    </span>
+                </td>
+                <td>{{ contact.last_activity | date:'short' }}</td>
+                <td>
+                    <button class="more-btn" (click)="deleteContact(contact.id)" title="Delete">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14H6L5 6"></path>
+                            <path d="M10 11v6M14 11v6"></path>
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+            <tr *ngIf="filteredContacts.length === 0">
+                <td colspan="7" class="empty">No contacts found</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="table-footer">
+        <div class="info">Showing {{ filteredContacts.length }} of {{ contacts.length }} contacts</div>
+    </div>
+</div>
