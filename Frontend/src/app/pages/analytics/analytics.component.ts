@@ -87,7 +87,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
             .forEach(d => {
                 const date = new Date(d.expected_close);
                 if (isNaN(date.getTime())) return;
-                const key = date.toLocaleString('ru', { month: 'short', year: '2-digit' });
+                const key = date.toLocaleString('en', { month: 'short', year: '2-digit' });
                 map[key] = (map[key] || 0) + parseFloat(d.value || 0);
             });
         this.monthLabels = Object.keys(map);
@@ -154,7 +154,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
         ctx.fillText(String(total), cx, cy - 10);
         ctx.fillStyle = '#94a3b8';
         ctx.font = '12px sans-serif';
-        ctx.fillText('сделок', cx, cy + 12);
+        ctx.fillText('deals', cx, cy + 12);
     }
 
     drawBar(): void {
