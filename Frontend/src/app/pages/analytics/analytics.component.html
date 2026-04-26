@@ -1,0 +1,99 @@
+<header class="page-header">
+    <div class="breadcrumb">
+        <a routerLink="/dashboard">Dashboard</a>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m9 18 6-6-6-6"></path>
+        </svg>
+        <span>Аналитика</span>
+    </div>
+</header>
+
+<div class="loading" *ngIf="loading">Загрузка данных...</div>
+<div class="error-msg" *ngIf="error">{{ error }}</div>
+
+<ng-container *ngIf="!loading">
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Всего сделок</div>
+            <div class="metric-value">{{ totalDeals }}</div>
+        </div>
+        <div class="metric-card green">
+            <div class="metric-label">Выиграно</div>
+            <div class="metric-value">{{ wonDeals }}</div>
+        </div>
+        <div class="metric-card red">
+            <div class="metric-label">Проиграно</div>
+            <div class="metric-value">{{ lostDeals }}</div>
+        </div>
+        <div class="metric-card blue">
+            <div class="metric-label">Выручка (Won)</div>
+            <div class="metric-value">${{ totalRevenue.toLocaleString() }}</div>
+        </div>
+        <div class="metric-card purple">
+            <div class="metric-label">Win Rate</div>
+            <div class="metric-value">{{ winRate }}%</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+
+        <div class="chart-card">
+            <h3>Сделки по стадиям</h3>
+            <div class="donut-wrap">
+                <canvas #donutCanvas width="220" height="220"></canvas>
+                <div class="legend">
+                    <div class="legend-item" *ngFor="let stage of stages; let i = index">
+                        <span class="dot" [style.background]="stageColors[i]"></span>
+                        <span class="legend-label">{{ stage }}</span>
+                        <span class="legend-count">{{ stageCounts[i] }}</span>
+                        <span class="legend-pct">{{ getStagePercent(i) }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Выручка по месяцам (Won)</h3>
+            <canvas #barCanvas width="520" height="260"></canvas>
+            <div class="empty-chart" *ngIf="monthRevenue.length === 0">
+                Нет закрытых сделок
+            </div>
+        </div>
+
+    </div>
+
+    <div class="chart-card table-card">
+        <h3>Сумма сделок по стадиям</h3>
+        <table class="stage-table">
+            <thead>
+                <tr>
+                    <th>Стадия</th>
+                    <th>Количество</th>
+                    <th>Сумма</th>
+                    <th>Доля</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let stage of stages; let i = index">
+                    <td>
+                        <span class="stage-dot" [style.background]="stageColors[i]"></span>
+                        {{ stage }}
+                    </td>
+                    <td>{{ stageCounts[i] }}</td>
+                    <td>${{ stageAmounts[i].toLocaleString() }}</td>
+                    <td>
+                        <div class="mini-bar-wrap">
+                            <div class="mini-bar"
+                                [style.width]="getStagePercent(i) + '%'"
+                                [style.background]="stageColors[i]">
+                            </div>
+                            <span>{{ getStagePercent(i) }}%</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</ng-container>

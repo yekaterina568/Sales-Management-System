@@ -5,7 +5,7 @@
 <div class="error-msg" *ngIf="error">{{ error }}</div>
 
 <div class="stats-grid">
-    <div class="stat-card" *ngFor="let stat of stats">
+    <a class="stat-card" *ngFor="let stat of stats" [routerLink]="stat.link">
         <div class="stat-header">
             <span class="stat-title">{{ stat.title }}</span>
             <div class="stat-icon-bg">
@@ -17,7 +17,8 @@
         </div>
         <div class="stat-value">{{ stat.value }}</div>
         <div class="stat-trend">{{ stat.trend }}</div>
-    </div>
+        <div class="stat-hint">Нажмите для аналитики →</div>
+    </a>
 </div>
 
 <div class="pipeline-section">
@@ -40,7 +41,15 @@
                 <option value="Won">Won</option>
                 <option value="Lost">Lost</option>
             </select>
-            <input [(ngModel)]="newDeal.expected_close" type="date" placeholder="Expected Close Date" />
+            <input [(ngModel)]="newDeal.expected_close" type="date" />
+        </div>
+        <div class="form-row">
+            <select [(ngModel)]="newDeal.contact">
+                <option [ngValue]="null">— Без контакта —</option>
+                <option *ngFor="let c of contacts" [ngValue]="c.id">
+                    {{ c.full_name }} ({{ c.company }})
+                </option>
+            </select>
         </div>
         <div class="form-actions">
             <button class="cancel-btn" (click)="showAddForm = false">Cancel</button>
@@ -57,17 +66,27 @@
                 <span class="column-count">{{ column.deals.length }}</span>
             </div>
 
-            <div cdkDropList [cdkDropListData]="column.deals" class="card-list" (cdkDropListDropped)="drop($event)">
+            <div cdkDropList [cdkDropListData]="column.deals" class="card-list"
+                (cdkDropListDropped)="drop($event)">
 
-                <div class="deal-card" *ngFor="let deal of column.deals" cdkDrag [routerLink]="['/deals', deal.id]">
-                    <div class="card-status-dot" [style.background-color]="getBorderColor(deal.stage)"></div>
+                <div class="deal-card" *ngFor="let deal of column.deals" cdkDrag
+                    [routerLink]="['/deals', deal.id]">
+                    <div class="card-status-dot"
+                        [style.background-color]="getBorderColor(deal.stage)"></div>
                     <div class="deal-title">{{ deal.title }}</div>
-                    <div class="deal-company">{{ deal.contact || '—' }}</div>
-                    <div class="deal-footer">
-                        <span class="deal-amount">{{ deal.value | currency:'USD':'symbol':'1.0-0' }}</span>
+                    <div class="deal-company">
+                        {{ deal.contact ? getContactName(deal.contact) : '—' }}
                     </div>
-                    <div class="card-tags" *ngIf="deal.stage === 'Won' || deal.stage === 'Lost'">
-                        <span class="tag" [class.won]="deal.stage === 'Won'" [class.lost]="deal.stage === 'Lost'">
+                    <div class="deal-footer">
+                        <span class="deal-amount">
+                            {{ deal.value | currency:'USD':'symbol':'1.0-0' }}
+                        </span>
+                    </div>
+                    <div class="card-tags"
+                        *ngIf="deal.stage === 'Won' || deal.stage === 'Lost'">
+                        <span class="tag"
+                            [class.won]="deal.stage === 'Won'"
+                            [class.lost]="deal.stage === 'Lost'">
                             {{ deal.stage }}
                         </span>
                     </div>

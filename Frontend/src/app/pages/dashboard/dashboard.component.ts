@@ -4,12 +4,8 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import {
-    CdkDragDrop,
-    moveItemInArray,
-    transferArrayItem,
-    CdkDrag,
-    CdkDropList,
-    CdkDropListGroup
+    CdkDragDrop, moveItemInArray, transferArrayItem,
+    CdkDrag, CdkDropList, CdkDropListGroup
 } from '@angular/cdk/drag-drop';
 
 @Component({
@@ -21,6 +17,7 @@ import {
 })
 export class DashboardComponent implements OnInit {
     deals: any[] = [];
+    contacts: any[] = [];
     error: string = '';
     loading: boolean = true;
 
@@ -30,7 +27,7 @@ export class DashboardComponent implements OnInit {
         value: 0,
         stage: 'New',
         expected_close: '',
-        contact: null
+        contact: null as number | null
     };
 
     columns: { name: string; status: string; deals: any[] }[] = [
@@ -41,16 +38,27 @@ export class DashboardComponent implements OnInit {
     ];
 
     stats = [
-        { title: 'TOTAL DEALS', value: '0', trend: '', icon: 'trending-up' },
-        { title: 'REVENUE', value: '$0', trend: '', icon: 'dollar-sign' },
-        { title: 'ACTIVE CONTACTS', value: '0', trend: '', icon: 'users' }
+        { title: 'TOTAL DEALS', value: '0', trend: '', icon: 'trending-up', link: '/analytics' },
+        { title: 'REVENUE', value: '$0', trend: '', icon: 'dollar-sign', link: '/analytics' },
+        { title: 'ACTIVE CONTACTS', value: '0', trend: '', icon: 'users', link: '/analytics' }
     ];
 
-    constructor(private api: ApiService) { }
+    constructor(private api: ApiService) {}
 
     ngOnInit(): void {
         this.loadDeals();
-        this.loadStats();
+        this.loadContacts();
+    }
+
+    loadContacts(): void {
+        this.api.getContacts().subscribe({
+            next: (contacts) => {
+                this.contacts = contacts;
+                const active = contacts.filter((c: any) => c.status === 'Active').length;
+                this.stats[2].value = String(active);
+                this.stats[2].trend = `${contacts.length} total contacts`;
+            }
+        });
     }
 
     loadDeals(): void {
@@ -60,6 +68,19 @@ export class DashboardComponent implements OnInit {
                 this.deals = deals;
                 this.organizeDeals();
                 this.loading = false;
+
+                const total = deals.length;
+                const revenue = deals
+                    .filter((d: any) => d.stage === 'Won')
+                    .reduce((sum: number, d: any) => sum + parseFloat(d.value || 0), 0);
+                const activeDeals = deals.filter((d: any) =>
+                    d.stage !== 'Won' && d.stage !== 'Lost'
+                ).length;
+
+                this.stats[0].value = String(total);
+                this.stats[0].trend = `+${activeDeals} active deals`;
+                this.stats[1].value = '$' + revenue.toLocaleString();
+                this.stats[1].trend = 'from won deals';
             },
             error: () => {
                 this.error = 'Failed to load deals';
@@ -68,36 +89,11 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    loadStats(): void {
-        this.api.getDeals().subscribe({
-            next: (deals) => {
-                const total = deals.length;
-                const revenue = deals
-                    .filter(d => d.stage === 'Won')
-                    .reduce((sum: number, d: any) => sum + parseFloat(d.value || 0), 0);
-                this.stats[0].value = String(total);
-                this.stats[0].trend = `${total} deals total`;
-                this.stats[1].value = '$' + revenue.toLocaleString();
-                this.stats[1].trend = 'Won deals revenue';
-            }
-        });
-
-        this.api.getContacts().subscribe({
-            next: (contacts) => {
-                const active = contacts.filter((c: any) => c.status === 'Active').length;
-                this.stats[2].value = String(active);
-                this.stats[2].trend = `${active} active contacts`;
-            }
-        });
-    }
-
     organizeDeals(): void {
         this.columns.forEach(col => col.deals = []);
         this.deals.forEach(deal => {
             const col = this.columns.find(c => {
-                if (c.name === 'Won / Lost') {
-                    return deal.stage === 'Won' || deal.stage === 'Lost';
-                }
+                if (c.name === 'Won / Lost') return deal.stage === 'Won' || deal.stage === 'Lost';
                 return c.status === deal.stage;
             });
             if (col) col.deals.push(deal);
@@ -117,8 +113,7 @@ export class DashboardComponent implements OnInit {
             const deal = event.container.data[event.currentIndex];
             const targetColumn = this.columns.find(c => c.deals === event.container.data);
             if (targetColumn) {
-                const newStage = targetColumn.status;
-                this.api.updateDeal(deal.id, { stage: newStage }).subscribe({
+                this.api.updateDeal(deal.id, { stage: targetColumn.status }).subscribe({
                     next: (updated) => { deal.stage = updated.stage; },
                     error: () => { this.error = 'Failed to update deal stage'; }
                 });
@@ -137,6 +132,11 @@ export class DashboardComponent implements OnInit {
             },
             error: () => { this.error = 'Failed to create deal'; }
         });
+    }
+
+    getContactName(contactId: number): string {
+        const c = this.contacts.find(c => c.id === contactId);
+        return c ? c.full_name : '—';
     }
 
     getBorderColor(status: string): string {

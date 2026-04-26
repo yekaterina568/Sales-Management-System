@@ -1,0 +1,34 @@
+<header class="page-header">
+    <h1>Настройки профиля</h1>
+</header>
+
+<div class="settings-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3>Личные данные</h3>
+        </div>
+
+        <div class="avatar-section">
+            <img [src]="getAvatarUrl()" alt="avatar" class="avatar-preview">
+            <div class="avatar-info">
+                <p class="avatar-hint">Вставьте ссылку на фото или оставьте пустым — аватар сгенерируется по имени</p>
+                <input [(ngModel)]="profile.avatarUrl" placeholder="https://example.com/photo.jpg" class="url-input" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Имя</label>
+            <input [(ngModel)]="profile.name" placeholder="Ваше имя" />
+        </div>
+
+        <div class="form-group">
+            <label>Должность</label>
+            <input [(ngModel)]="profile.role" placeholder="Например: Sales Manager" />
+        </div>
+
+        <div class="form-actions">
+            <div class="saved-msg" *ngIf="saved">✓ Сохранено</div>
+            <button class="save-btn" (click)="save()">Сохранить изменения</button>
+        </div>
+    </div>
+</div>

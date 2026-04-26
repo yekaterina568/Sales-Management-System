@@ -1,9 +1,11 @@
-.main-content {
-  margin-left: 180px;
-  min-height: 100vh;
-  background-color: #f8fafc;
-}
-
-.page-container {
-  padding: 32px;
-}
+.main-wrapper {
+    margin-left: 180px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .content {
+    padding: 32px;
+    flex: 1;
+  }

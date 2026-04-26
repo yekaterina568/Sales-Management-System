@@ -53,6 +53,7 @@ export class LoginComponent {
                 localStorage.setItem('access_token', res.access);
                 localStorage.setItem('refresh_token', res.refresh);
                 this.router.navigate(['/dashboard']);
+                localStorage.setItem('username', this.username);
             },
             error: () => { this.error = 'Invalid username or password'; }
         });
