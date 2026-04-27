@@ -3,7 +3,69 @@
         <circle cx="11" cy="11" r="8"></circle>
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
-    <input type="text" placeholder="Search deals, contacts...">
+    <input type="text" placeholder="Search deals, contacts, users..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchInput()"
+        (focus)="showSearch = !!searchResults">
+    <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()">×</button>
+
+    <div class="search-dropdown" *ngIf="showSearch && searchResults">
+        <ng-container *ngIf="hasResults(); else noResults">
+
+            <div class="search-group" *ngIf="searchResults.deals?.length > 0">
+                <div class="group-label">Deals</div>
+                <a class="search-item" *ngFor="let d of searchResults.deals"
+                    [routerLink]="['/deals', d.id]" (click)="clearSearch()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                    </svg>
+                    <span>{{ d.title }}</span>
+                    <span class="item-sub">{{ d.stage }}</span>
+                </a>
+            </div>
+
+            <div class="search-group" *ngIf="searchResults.contacts?.length > 0">
+                <div class="group-label">Contacts</div>
+                <a class="search-item" *ngFor="let c of searchResults.contacts"
+                    routerLink="/contacts" (click)="clearSearch()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{{ c.full_name }}</span>
+                    <span class="item-sub">{{ c.company }}</span>
+                </a>
+            </div>
+
+            <div class="search-group" *ngIf="searchResults.tasks?.length > 0">
+                <div class="group-label">Tasks</div>
+                <a class="search-item" *ngFor="let t of searchResults.tasks"
+                    routerLink="/tasks" (click)="clearSearch()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                    </svg>
+                    <span>{{ t.title }}</span>
+                </a>
+            </div>
+
+            <div class="search-group" *ngIf="searchResults.users?.length > 0">
+                <div class="group-label">Users</div>
+                <a class="search-item" *ngFor="let u of searchResults.users"
+                    routerLink="/settings" (click)="clearSearch()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path>
+                    </svg>
+                    <span>{{ u.first_name || u.username }}</span>
+                    <span class="item-sub">{{ u.profile?.role }}</span>
+                </a>
+            </div>
+
+        </ng-container>
+        <ng-template #noResults>
+            <div class="no-results">No results for "{{ searchQuery }}"</div>
+        </ng-template>
+    </div>
 </div>
 
 <div class="user-profile">
@@ -17,36 +79,31 @@
 
         <div class="notifications-dropdown" *ngIf="showNotifications" (click)="$event.stopPropagation()">
             <div class="dropdown-header">
-                <span>Уведомления</span>
+                <span>Notifications</span>
                 <span class="count-badge">{{ notifications.length }}</span>
             </div>
             <div class="notifications-list" *ngIf="notifications.length > 0">
                 <div class="notification-item" *ngFor="let n of notifications" [class.overdue]="n.daysLeft < 0">
                     <div class="notif-icon" [class.task]="n.type === 'task'" [class.deal]="n.type === 'deal'">
-                        <svg *ngIf="n.type === 'task'" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
+                        <svg *ngIf="n.type === 'task'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="9 11 12 14 22 4"></polyline>
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
-                        <svg *ngIf="n.type === 'deal'" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
+                        <svg *ngIf="n.type === 'deal'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
                         </svg>
                     </div>
                     <div class="notif-body">
                         <div class="notif-title">{{ n.title }}</div>
                         <div class="notif-meta">
-                            <span class="notif-type">{{ n.type === 'task' ? 'Задача' : 'Сделка' }}</span>
-                            <span class="notif-day" [class.overdue]="n.daysLeft < 0">{{ getDayLabel(n.daysLeft)
-                                }}</span>
+                            <span class="notif-type">{{ n.type === 'task' ? 'Task' : 'Deal' }}</span>
+                            <span class="notif-day" [class.overdue]="n.daysLeft < 0">{{ getDayLabel(n.daysLeft) }}</span>
                         </div>
                     </div>
                     <button class="dismiss-btn" (click)="dismiss(n.id, $event)">×</button>
                 </div>
             </div>
-            <div class="empty-notifications" *ngIf="notifications.length === 0">
-                Нет срочных уведомлений
-            </div>
+            <div class="empty-notifications" *ngIf="notifications.length === 0">No urgent notifications</div>
         </div>
     </div>
 
@@ -72,13 +129,10 @@
             <a routerLink="/settings" class="dropdown-item" (click)="showUserMenu = false">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
-                    </path>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
-                Настройки профиля
+                Profile Settings
             </a>
         </div>
     </div>
-
 </div>

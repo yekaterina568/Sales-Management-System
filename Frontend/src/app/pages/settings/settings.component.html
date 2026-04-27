@@ -1,34 +1,140 @@
 <header class="page-header">
-    <h1>Profile Settings</h1>
+    <h1>Settings</h1>
+    <div class="tabs">
+        <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">Profile</button>
+        <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Users</button>
+        <button [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
+            Requests
+            <span class="badge" *ngIf="incomingRequests.length > 0">{{ incomingRequests.length }}</span>
+        </button>
+    </div>
 </header>
 
-<div class="settings-grid">
+<div class="error-msg" *ngIf="error">{{ error }}</div>
+<div class="loading" *ngIf="loading">Loading...</div>
+
+<div class="settings-grid" *ngIf="activeTab === 'profile' && !loading">
     <div class="card">
-        <div class="card-header">
-            <h3>Personal Information</h3>
-        </div>
+        <div class="card-header"><h3>Personal Info</h3></div>
 
         <div class="avatar-section">
-            <img [src]="getAvatarUrl()" alt="avatar" class="avatar-preview">
+            <img [src]="getAvatarUrl(profile.avatar_url, profile.first_name || username)" class="avatar-preview">
             <div class="avatar-info">
-                <p class="avatar-hint">Paste a photo link or leave it blank — an avatar will be generated based on your name</p>
-                <input [(ngModel)]="profile.avatarUrl" placeholder="https://example.com/photo.jpg" class="url-input" />
+                <p class="avatar-hint">Paste a photo URL or leave blank — avatar will be generated from your name</p>
+                <input [(ngModel)]="profile.avatar_url" placeholder="https://example.com/photo.jpg" class="url-input" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>First Name</label>
+                <input [(ngModel)]="profile.first_name" placeholder="First name" />
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input [(ngModel)]="profile.last_name" placeholder="Last name" />
             </div>
         </div>
 
         <div class="form-group">
-            <label>Name</label>
-            <input [(ngModel)]="profile.name" placeholder="Your name" />
+            <label>Username</label>
+            <input [value]="username" disabled class="disabled-input" />
         </div>
 
         <div class="form-group">
-            <label>Job Title</label>
-            <input [(ngModel)]="profile.role" placeholder="e.g. Sales Manager" />
+            <label>Email</label>
+            <input [(ngModel)]="profile.email" placeholder="Email" type="email" />
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Role</label>
+                <input [(ngModel)]="profile.role" placeholder="e.g. Sales Manager" />
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input [(ngModel)]="profile.phone" placeholder="+1 234 567 8900" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Company</label>
+            <input [(ngModel)]="profile.company" placeholder="Company name" />
+        </div>
+
+        <div class="form-group">
+            <label>Bio</label>
+            <textarea [(ngModel)]="profile.bio" placeholder="Tell something about yourself..." rows="3"></textarea>
         </div>
 
         <div class="form-actions">
             <div class="saved-msg" *ngIf="saved">✓ Saved</div>
             <button class="save-btn" (click)="save()">Save Changes</button>
         </div>
+    </div>
+</div>
+
+<div class="users-grid" *ngIf="activeTab === 'users'">
+    <div class="user-card" *ngFor="let u of users">
+        <img [src]="getAvatarUrl(u.profile?.avatar_url, u.first_name || u.username)" class="user-avatar">
+        <div class="user-info">
+            <div class="user-name">{{ u.first_name ? (u.first_name + ' ' + u.last_name) : u.username }}</div>
+            <div class="user-role">{{ u.profile?.role || 'No role' }}</div>
+            <div class="user-company" *ngIf="u.profile?.company">{{ u.profile.company }}</div>
+        </div>
+        <div class="user-actions">
+            <ng-container [ngSwitch]="getRequestStatus(u.id)">
+                <span class="status-badge pending" *ngSwitchCase="'pending'">Pending</span>
+                <span class="status-badge accepted" *ngSwitchCase="'accepted'">Connected</span>
+                <span class="status-badge declined" *ngSwitchCase="'declined'">Declined</span>
+                <div *ngSwitchDefault>
+                    <div *ngIf="sendingTo === u.id" class="send-form">
+                        <input [(ngModel)]="collabMessage" placeholder="Message (optional)" />
+                        <div class="send-form-btns">
+                            <button class="cancel-btn" (click)="sendingTo = null">Cancel</button>
+                            <button class="send-btn" (click)="sendRequest(u.id)">Send</button>
+                        </div>
+                    </div>
+                    <button *ngIf="sendingTo !== u.id" class="collab-btn" (click)="sendingTo = u.id">
+                        + Collaborate
+                    </button>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+    <div class="empty-state" *ngIf="users.length === 0">No other users found</div>
+</div>
+
+<div class="requests-section" *ngIf="activeTab === 'requests'">
+    <div class="requests-col">
+        <h3>Incoming <span class="count">{{ incomingRequests.length }}</span></h3>
+        <div class="request-card" *ngFor="let r of incomingRequests">
+            <img [src]="getAvatarUrl(r.from_user?.profile?.avatar_url, r.from_user?.username)" class="req-avatar">
+            <div class="req-info">
+                <div class="req-name">{{ r.from_user?.first_name || r.from_user?.username }}</div>
+                <div class="req-role">{{ r.from_user?.profile?.role }}</div>
+                <div class="req-message" *ngIf="r.message">"{{ r.message }}"</div>
+            </div>
+            <div class="req-actions" *ngIf="r.status === 'pending'">
+                <button class="accept-btn" (click)="respond(r.id, 'accept')">✓</button>
+                <button class="decline-btn" (click)="respond(r.id, 'decline')">✕</button>
+            </div>
+            <span class="status-badge {{ r.status }}" *ngIf="r.status !== 'pending'">{{ r.status }}</span>
+        </div>
+        <div class="empty-state" *ngIf="incomingRequests.length === 0">No incoming requests</div>
+    </div>
+
+    <div class="requests-col">
+        <h3>Outgoing <span class="count">{{ outgoingRequests.length }}</span></h3>
+        <div class="request-card" *ngFor="let r of outgoingRequests">
+            <img [src]="getAvatarUrl(r.to_user?.profile?.avatar_url, r.to_user?.username)" class="req-avatar">
+            <div class="req-info">
+                <div class="req-name">{{ r.to_user?.first_name || r.to_user?.username }}</div>
+                <div class="req-role">{{ r.to_user?.profile?.role }}</div>
+                <div class="req-message" *ngIf="r.message">"{{ r.message }}"</div>
+            </div>
+            <span class="status-badge {{ r.status }}">{{ r.status }}</span>
+        </div>
+        <div class="empty-state" *ngIf="outgoingRequests.length === 0">No outgoing requests</div>
     </div>
 </div>

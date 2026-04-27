@@ -36,3 +36,25 @@ class Task(models.Model):
     deadline = models.DateField()
     completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=100, default='Sales Manager')
+    avatar_url = models.URLField(blank=True)
+    bio = models.TextField(blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    company = models.CharField(max_length=255, blank=True)
+
+class CollaborationRequest(models.Model):
+    STATUS = [('pending', 'Pending'), ('accepted', 'Accepted'), ('declined', 'Declined')]
+    from_user = models.ForeignKey(User, related_name='sent_requests', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(User, related_name='received_requests', on_delete=models.CASCADE)
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')
+
+    def __str__(self):
+        return f'{self.from_user} → {self.to_user} ({self.status})'
