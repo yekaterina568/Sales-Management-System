@@ -12,7 +12,7 @@
     <div class="card">
       <div class="task-item" *ngFor="let task of filteredTasks">
         <label class="checkbox-container">
-          <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
+          <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task)">
           <span class="checkmark"></span>
         </label>
         <div class="task-info" [class.completed]="task.completed">

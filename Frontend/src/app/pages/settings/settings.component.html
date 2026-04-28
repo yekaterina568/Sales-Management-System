@@ -7,16 +7,17 @@
             Requests
             <span class="badge" *ngIf="incomingRequests.length > 0">{{ incomingRequests.length }}</span>
         </button>
+        <button [class.active]="activeTab === 'account'" (click)="activeTab = 'account'">Account</button>
     </div>
 </header>
 
 <div class="error-msg" *ngIf="error">{{ error }}</div>
 <div class="loading" *ngIf="loading">Loading...</div>
 
+<!-- PROFILE TAB -->
 <div class="settings-grid" *ngIf="activeTab === 'profile' && !loading">
     <div class="card">
         <div class="card-header"><h3>Personal Info</h3></div>
-
         <div class="avatar-section">
             <img [src]="getAvatarUrl(profile.avatar_url, profile.first_name || username)" class="avatar-preview">
             <div class="avatar-info">
@@ -24,7 +25,6 @@
                 <input [(ngModel)]="profile.avatar_url" placeholder="https://example.com/photo.jpg" class="url-input" />
             </div>
         </div>
-
         <div class="form-row">
             <div class="form-group">
                 <label>First Name</label>
@@ -35,17 +35,14 @@
                 <input [(ngModel)]="profile.last_name" placeholder="Last name" />
             </div>
         </div>
-
         <div class="form-group">
             <label>Username</label>
             <input [value]="username" disabled class="disabled-input" />
         </div>
-
         <div class="form-group">
             <label>Email</label>
             <input [(ngModel)]="profile.email" placeholder="Email" type="email" />
         </div>
-
         <div class="form-row">
             <div class="form-group">
                 <label>Role</label>
@@ -56,17 +53,14 @@
                 <input [(ngModel)]="profile.phone" placeholder="+1 234 567 8900" />
             </div>
         </div>
-
         <div class="form-group">
             <label>Company</label>
             <input [(ngModel)]="profile.company" placeholder="Company name" />
         </div>
-
         <div class="form-group">
             <label>Bio</label>
             <textarea [(ngModel)]="profile.bio" placeholder="Tell something about yourself..." rows="3"></textarea>
         </div>
-
         <div class="form-actions">
             <div class="saved-msg" *ngIf="saved">✓ Saved</div>
             <button class="save-btn" (click)="save()">Save Changes</button>
@@ -74,6 +68,7 @@
     </div>
 </div>
 
+<!-- USERS TAB -->
 <div class="users-grid" *ngIf="activeTab === 'users'">
     <div class="user-card" *ngFor="let u of users">
         <img [src]="getAvatarUrl(u.profile?.avatar_url, u.first_name || u.username)" class="user-avatar">
@@ -105,6 +100,7 @@
     <div class="empty-state" *ngIf="users.length === 0">No other users found</div>
 </div>
 
+<!-- REQUESTS TAB -->
 <div class="requests-section" *ngIf="activeTab === 'requests'">
     <div class="requests-col">
         <h3>Incoming <span class="count">{{ incomingRequests.length }}</span></h3>
@@ -123,7 +119,6 @@
         </div>
         <div class="empty-state" *ngIf="incomingRequests.length === 0">No incoming requests</div>
     </div>
-
     <div class="requests-col">
         <h3>Outgoing <span class="count">{{ outgoingRequests.length }}</span></h3>
         <div class="request-card" *ngFor="let r of outgoingRequests">
@@ -136,5 +131,67 @@
             <span class="status-badge {{ r.status }}">{{ r.status }}</span>
         </div>
         <div class="empty-state" *ngIf="outgoingRequests.length === 0">No outgoing requests</div>
+    </div>
+</div>
+
+<!-- ACCOUNT TAB -->
+<div class="account-grid" *ngIf="activeTab === 'account'">
+    <div class="card">
+        <div class="card-header"><h3> Change Password</h3></div>
+        <div class="form-group">
+            <label>Current Password</label>
+            <input [(ngModel)]="changePass.old_password" type="password" placeholder="Enter current password" />
+        </div>
+        <div class="form-group">
+            <label>New Password</label>
+            <input [(ngModel)]="changePass.new_password" type="password" placeholder="Min 6 characters" />
+        </div>
+        <div class="form-group">
+            <label>Confirm New Password</label>
+            <input [(ngModel)]="changePass.confirm_password" type="password" placeholder="Repeat new password" />
+        </div>
+        <div class="success-msg" *ngIf="passwordSaved">✓ Password changed successfully</div>
+        <div class="error-inline" *ngIf="passwordError">{{ passwordError }}</div>
+        <div class="form-actions">
+            <button class="save-btn" (click)="changePassword()">Change Password</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Create New User</h3>
+            <p class="card-subtitle">Create an account for a new team member</p>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>First Name</label>
+                <input [(ngModel)]="newUser.first_name" placeholder="Ivan" />
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input [(ngModel)]="newUser.last_name" placeholder="Ivanov" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Username</label>
+            <input [(ngModel)]="newUser.username" placeholder="ivan123" />
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input [(ngModel)]="newUser.email" type="email" placeholder="ivan@mail.com" />
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input [(ngModel)]="newUser.password" type="password" placeholder="Min 6 characters" />
+        </div>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input [(ngModel)]="newUser.confirm_password" type="password" placeholder="Repeat password" />
+        </div>
+        <div class="success-msg" *ngIf="userCreated">✓ User created successfully!</div>
+        <div class="error-inline" *ngIf="createUserError">{{ createUserError }}</div>
+        <div class="form-actions">
+            <button class="save-btn" (click)="createUser()">Create User</button>
+        </div>
     </div>
 </div>

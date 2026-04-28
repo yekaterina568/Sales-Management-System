@@ -16,10 +16,16 @@ export class ApiService {
     login(username: string, password: string): Observable<any> {
         return this.http.post(`${this.base}/login/`, { username, password });
     }
+    signup(data: { username: string; password: string; email: string; first_name: string; last_name: string; }) {
+        return this.http.post<any>(`${this.base}/register/`, data);
+    }
+
+    changePassword(old_password: string, new_password: string) {
+        return this.http.post<any>(`${this.base}/change-password/`, { old_password, new_password }, { headers: this.headers() });
+    }
     logout(refresh: string): Observable<any> {
         return this.http.post(`${this.base}/logout/`, { refresh }, { headers: this.headers() });
     }
-
     getMyProfile(): Observable<any> {
         return this.http.get(`${this.base}/profile/me/`, { headers: this.headers() });
     }

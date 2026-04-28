@@ -15,6 +15,45 @@ from ..serializers import (
 
 
 @api_view(['POST'])
+def signup_view(request):
+    username = request.data.get('username', '').strip()
+    password = request.data.get('password', '').strip()
+    email = request.data.get('email', '').strip()
+    first_name = request.data.get('first_name', '').strip()
+    last_name = request.data.get('last_name', '').strip()
+
+    if not username or not password:
+        return Response({'error': 'username и password обязательны'}, status=400)
+
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'Пользователь с таким username уже существует'}, status=400)
+
+    if email and User.objects.filter(email=email).exists():
+        return Response({'error': 'Пользователь с таким email уже существует'}, status=400)
+
+    user = User.objects.create_user(
+        username=username,
+        password=password,
+        email=email,
+        first_name=first_name,
+        last_name=last_name
+    )
+    UserProfile.objects.get_or_create(user=user)
+
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'email': user.email
+        }
+    }, status=201)
+
+
+@api_view(['POST'])
 def login_view(request):
     serializer = LoginRequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -26,7 +65,16 @@ def login_view(request):
         return Response({'error': 'Invalid credentials'}, status=400)
     UserProfile.objects.get_or_create(user=user)
     refresh = RefreshToken.for_user(user)
-    return Response({'access': str(refresh.access_token), 'refresh': str(refresh)})
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'email': user.email
+        }
+    })
 
 
 @api_view(['POST'])
@@ -139,6 +187,25 @@ def respond_to_request(request, pk):
     req.save()
     return Response(CollaborationRequestSerializer(req).data)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    old_password = request.data.get('old_password', '')
+    new_password = request.data.get('new_password', '')
+
+    if not old_password or not new_password:
+        return Response({'error': 'Both fields are required'}, status=400)
+
+    if not request.user.check_password(old_password):
+        return Response({'error': 'Current password is incorrect'}, status=400)
+
+    if len(new_password) < 6:
+        return Response({'error': 'New password must be at least 6 characters'}, status=400)
+
+    request.user.set_password(new_password)
+    request.user.save()
+    return Response({'message': 'Password changed successfully'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

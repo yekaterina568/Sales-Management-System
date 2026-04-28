@@ -26,7 +26,15 @@ export class SettingsComponent implements OnInit {
     outgoingRequests: any[] = [];
     sendingTo: number | null = null;
     collabMessage = '';
-    activeTab: 'profile' | 'users' | 'requests' = 'profile';
+    activeTab: 'profile' | 'users' | 'requests' | 'account' = 'profile';
+
+    changePass = { old_password: '', new_password: '', confirm_password: '' };
+    passwordSaved = false;
+    passwordError = '';
+
+    newUser = { first_name: '', last_name: '', username: '', email: '', password: '', confirm_password: '' };
+    userCreated = false;
+    createUserError = '';
 
     constructor(private api: ApiService, private profileService: ProfileService) {}
 
@@ -69,9 +77,7 @@ export class SettingsComponent implements OnInit {
                 this.saved = true;
                 setTimeout(() => this.saved = false, 2500);
                 this.profileService.updateProfile({
-                    name: data.first_name
-                        ? `${data.first_name} ${data.last_name}`.trim()
-                        : data.username,
+                    name: data.first_name ? `${data.first_name} ${data.last_name}`.trim() : data.username,
                     role: data.profile?.role || '',
                     avatarUrl: data.profile?.avatar_url || ''
                 });
@@ -80,26 +86,75 @@ export class SettingsComponent implements OnInit {
         });
     }
 
+    changePassword(): void {
+        this.passwordError = '';
+        this.passwordSaved = false;
+
+        if (!this.changePass.old_password || !this.changePass.new_password) {
+            this.passwordError = 'All fields are required';
+            return;
+        }
+        if (this.changePass.new_password.length < 6) {
+            this.passwordError = 'New password must be at least 6 characters';
+            return;
+        }
+        if (this.changePass.new_password !== this.changePass.confirm_password) {
+            this.passwordError = 'Passwords do not match';
+            return;
+        }
+
+        this.api.changePassword(this.changePass.old_password, this.changePass.new_password).subscribe({
+            next: () => {
+                this.passwordSaved = true;
+                this.changePass = { old_password: '', new_password: '', confirm_password: '' };
+                setTimeout(() => this.passwordSaved = false, 3000);
+            },
+            error: (err) => { this.passwordError = err.error?.error || 'Failed to change password'; }
+        });
+    }
+
+    createUser(): void {
+        this.createUserError = '';
+        this.userCreated = false;
+
+        if (!this.newUser.username || !this.newUser.password) {
+            this.createUserError = 'Username and password are required';
+            return;
+        }
+        if (this.newUser.password.length < 6) {
+            this.createUserError = 'Password must be at least 6 characters';
+            return;
+        }
+        if (this.newUser.password !== this.newUser.confirm_password) {
+            this.createUserError = 'Passwords do not match';
+            return;
+        }
+
+        const { confirm_password, ...data } = this.newUser;
+        this.api.signup(data).subscribe({
+            next: () => {
+                this.userCreated = true;
+                this.newUser = { first_name: '', last_name: '', username: '', email: '', password: '', confirm_password: '' };
+                this.loadUsers();
+                setTimeout(() => this.userCreated = false, 3000);
+            },
+            error: (err) => { this.createUserError = err.error?.error || 'Failed to create user'; }
+        });
+    }
+
     sendRequest(userId: number): void {
         this.api.sendCollabRequest(userId, this.collabMessage).subscribe({
-            next: () => {
-                this.loadRequests();
-                this.sendingTo = null;
-                this.collabMessage = '';
-            },
+            next: () => { this.loadRequests(); this.sendingTo = null; this.collabMessage = ''; },
             error: (e) => { this.error = e.error?.error || 'Failed to send request'; }
         });
     }
 
     respond(id: number, action: 'accept' | 'decline'): void {
-        this.api.respondToRequest(id, action).subscribe({
-            next: () => this.loadRequests()
-        });
+        this.api.respondToRequest(id, action).subscribe({ next: () => this.loadRequests() });
     }
 
     getAvatarUrl(avatarUrl?: string, name?: string): string {
-        return avatarUrl ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'U')}&background=3b82f6&color=fff`;
+        return avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'U')}&background=3b82f6&color=fff`;
     }
 
     getRequestStatus(userId: number): string {
