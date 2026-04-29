@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Contact, Deal, Note, Task, UserProfile, CollaborationRequest
+from .models import Contact, Deal, Note, Task, UserProfile, CollaborationRequest, ActivityTimeline
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -46,11 +46,38 @@ class ContactSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 
+class ActivityTimelineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivityTimeline
+        fields = ['id', 'action', 'timestamp']
+
+
+class NoteWithAuthorSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Note
+        fields = ['id', 'text', 'created_at', 'author', 'author_name']
+        read_only_fields = ['author']
+
+    def get_author_name(self, obj):
+        return obj.author.get_full_name() or obj.author.username
+
+
 class DealSerializer(serializers.ModelSerializer):
+    activities = ActivityTimelineSerializer(many=True, read_only=True)
+    notes = NoteWithAuthorSerializer(many=True, read_only=True)
+    contact_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Deal
         fields = '__all__'
         read_only_fields = ['user']
+
+    def get_contact_name(self, obj):
+        if obj.contact:
+            return obj.contact.full_name
+        return None
 
 
 class LoginRequestSerializer(serializers.Serializer):

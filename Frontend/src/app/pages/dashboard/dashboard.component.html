@@ -81,6 +81,10 @@
                         <span class="deal-amount">
                             {{ deal.value | currency:'USD':'symbol':'1.0-0' }}
                         </span>
+                        <span class="tg-badge" *ngIf="deal.source === 'Telegram'">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.664l-2.938-.918c-.638-.203-.65-.638.136-.943l11.45-4.415c.531-.194.998.13.056.833z"/></svg>
+                            Telegram
+                        </span>
                     </div>
                     <div class="card-tags"
                         *ngIf="deal.stage === 'Won' || deal.stage === 'Lost'">
@@ -97,5 +101,26 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Telegram Leads Section -->
+<div class="tg-leads-section" *ngIf="telegramLeads.length > 0">
+    <div class="section-header">
+        <h2>
+            <svg viewBox="0 0 24 24" fill="#2AABEE" width="18" height="18" style="vertical-align:middle;margin-right:6px"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.664l-2.938-.918c-.638-.203-.65-.638.136-.943l11.45-4.415c.531-.194.998.13.056.833z"/></svg>
+            Telegram Leads
+            <span class="new-badge" *ngIf="newLeadsCount > 0">{{ newLeadsCount }} new</span>
+        </h2>
+    </div>
+    <div class="tg-leads-list">
+        <a class="tg-lead-card" *ngFor="let deal of telegramLeads" [routerLink]="['/deals', deal.id]">
+            <div class="tl-avatar">{{ deal.title[0] }}</div>
+            <div class="tl-info">
+                <div class="tl-title">{{ deal.title }}</div>
+                <div class="tl-meta">{{ deal.expected_close }}</div>
+            </div>
+            <span class="tl-stage" [class.stage-new]="deal.stage === 'New'">{{ deal.stage }}</span>
+        </a>
     </div>
 </div>

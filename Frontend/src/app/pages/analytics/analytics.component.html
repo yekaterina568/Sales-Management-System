@@ -54,4 +54,39 @@
         </div>
 
         <div class="chart-card">
-            <h3>Revenue by Mon
+            <h3>Revenue by Month (Won Deals)</h3>
+            <div class="bar-wrap">
+                <canvas #barCanvas width="480" height="220"></canvas>
+                <div class="no-data" *ngIf="monthLabels.length === 0">
+                    No won deals yet — close some deals to see revenue chart
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="stage-breakdown">
+        <h3>Stage Breakdown</h3>
+        <div class="breakdown-table">
+            <div class="breakdown-row header">
+                <span>Stage</span>
+                <span>Count</span>
+                <span>Total Value</span>
+                <span>Share</span>
+            </div>
+            <div class="breakdown-row" *ngFor="let stage of stages; let i = index">
+                <span class="stage-name">
+                    <span class="dot" [style.background]="stageColors[i]"></span>
+                    {{ stage }}
+                </span>
+                <span>{{ stageCounts[i] }}</span>
+                <span>${{ stageAmounts[i].toLocaleString() }}</span>
+                <span class="pct-bar">
+                    <span class="bar-fill" [style.width]="getStagePercent(i) + '%'" [style.background]="stageColors[i]"></span>
+                    {{ getStagePercent(i) }}%
+                </span>
+            </div>
+        </div>
+    </div>
+
+</ng-container>

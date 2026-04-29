@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,11 +15,14 @@ import {
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
     deals: any[] = [];
     contacts: any[] = [];
     error: string = '';
     loading: boolean = true;
+    telegramLeads: any[] = [];
+    newLeadsCount: number = 0;
+    private pollInterval: any;
 
     showAddForm: boolean = false;
     newDeal = {
@@ -48,6 +51,11 @@ export class DashboardComponent implements OnInit {
     ngOnInit(): void {
         this.loadDeals();
         this.loadContacts();
+        this.pollInterval = setInterval(() => this.loadDeals(), 30000);
+    }
+
+    ngOnDestroy(): void {
+        clearInterval(this.pollInterval);
     }
 
     loadContacts(): void {
@@ -81,6 +89,12 @@ export class DashboardComponent implements OnInit {
                 this.stats[0].trend = `+${activeDeals} active deals`;
                 this.stats[1].value = '$' + revenue.toLocaleString();
                 this.stats[1].trend = 'from won deals';
+
+                this.telegramLeads = deals
+                    .filter((d: any) => d.source === 'Telegram')
+                    .sort((a: any, b: any) => (b.id - a.id))
+                    .slice(0, 5);
+                this.newLeadsCount = deals.filter((d: any) => d.source === 'Telegram' && d.stage === 'New').length;
             },
             error: () => {
                 this.error = 'Failed to load deals';

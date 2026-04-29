@@ -12,12 +12,15 @@ class Contact(models.Model):
 
 class Deal(models.Model):
     STAGE_CHOICES = [('New', 'New'), ('In Progress', 'In Progress'), ('Negotiation', 'Negotiation'), ('Won', 'Won'), ('Lost', 'Lost')]
+    SOURCE_CHOICES = [('Manual', 'Manual'), ('Telegram', 'Telegram'), ('Web', 'Web'), ('Other', 'Other')]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    value = models.DecimalField(max_digits=10, decimal_places=2)
+    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='New')
-    contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, null=True, related_name='deals')
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='Manual')
+    contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, null=True, blank=True, related_name='deals')
     expected_close = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
 class Note(models.Model):
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name='notes')
